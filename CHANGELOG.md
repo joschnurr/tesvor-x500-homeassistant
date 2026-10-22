@@ -1,5 +1,14 @@
 # Änderungen
 
+## v1.0.1 – 2026-10-22
+
+Kartenseite (`docker/tesvor-map/app/map.html`):
+
+- Statuszeile „Letzter Punkt" liegt nicht mehr über dem Canvas, sondern als normales Element unter der Karte.
+- Vor dem Zeichnen wird die Bounding Box aller Punkte berechnet; einheitlicher Maßstab, ~5 % Rand, mittig.
+- Canvas-Höhe folgt dem Container (ResizeObserver) statt fester Pixel- oder vh-Höhe; passt sich dem iframe an.
+- Linien nur noch zwischen aufeinanderfolgenden Punkten gleichen Typs, keine Verbindung über Segmentgrenzen.
+
 ## v1.0.0 – 2026-10-22
 
 Erste Veröffentlichung, Stand des laufenden Umbaus.

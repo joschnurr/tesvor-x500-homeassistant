@@ -16,16 +16,20 @@
 
     * { box-sizing: border-box; }
 
+    html, body { height: 100%; }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
-      height: 54px;
+      flex: 0 0 auto;
       display: flex;
       gap: 12px;
       align-items: center;
@@ -55,30 +59,41 @@
       max-width: 520px;
     }
 
+    /* Karte füllt den Platz zwischen Kopf- und Statuszeile; die Canvas-Höhe folgt dem Container
+       (ResizeObserver), nicht einer festen Pixelzahl. */
     main {
-      height: calc(100vh - 54px);
+      flex: 1 1 auto;
+      min-height: 0;
       position: relative;
     }
 
     canvas {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       display: block;
       background: radial-gradient(circle at center, #1a2029 0%, #11151b 100%);
     }
 
+    /* Statuszeile als normales Element unter der Karte, nicht mehr über dem Canvas */
     #info {
-      position: absolute;
-      left: 12px;
-      bottom: 12px;
-      right: 12px;
+      flex: 0 0 auto;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      pointer-events: none;
+      padding: 6px 12px;
+      background: var(--panel);
+      border-top: 1px solid rgba(255,255,255,.08);
       color: var(--muted);
       font-size: 13px;
-      text-shadow: 0 1px 2px #000;
+    }
+
+    #lastPoint {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     #badge {
@@ -91,16 +106,11 @@
 
     @media (max-width: 620px) {
       header {
-        height: auto;
         flex-wrap: wrap;
       }
 
       h1 {
         width: 100%;
-      }
-
-      main {
-        height: calc(100vh - 98px);
       }
 
       #archiveSelect {
@@ -120,11 +130,11 @@
 
   <main>
     <canvas id="map"></canvas>
-    <div id="info">
-      <span id="badge">warte auf Daten…</span>
-      <span id="lastPoint"></span>
-    </div>
   </main>
+  <div id="info">
+    <span id="badge">warte auf Daten…</span>
+    <span id="lastPoint"></span>
+  </div>
 
   <script>
     const canvas = document.getElementById("map");
@@ -136,6 +146,7 @@
 
     let currentUrl = "current.json";
     let timer = null;
+    let lastData = null;
 
     function normalizePoint(p) {
       if (Array.isArray(p)) {
@@ -181,6 +192,7 @@
     }
 
     function drawMap(data) {
+      lastData = data;
       resizeCanvas();
 
       const rect = canvas.getBoundingClientRect();
@@ -207,21 +219,27 @@
       const minY = Math.min(...ys);
       const maxY = Math.max(...ys);
 
-      const pad = 28;
+      // Bounding Box aller Punkte -> ein gemeinsamer Maßstab für x und y (keine Verzerrung),
+      // ~5 % Rand (bezogen auf die kleinere Canvas-Seite) und mittig im Canvas.
+      const pad = Math.max(8, Math.min(w, h) * 0.05);
       const spanX = Math.max(1, maxX - minX);
       const spanY = Math.max(1, maxY - minY);
       const scale = Math.min((w - pad * 2) / spanX, (h - pad * 2) / spanY);
+      const offX = (w - spanX * scale) / 2;
+      const offY = (h - spanY * scale) / 2;
 
-      const mapX = x => pad + (x - minX) * scale;
-      const mapY = y => h - pad - (y - minY) * scale;
+      const mapX = x => offX + (x - minX) * scale;
+      const mapY = y => h - offY - (y - minY) * scale;
 
+      // Linien nur zwischen aufeinanderfolgenden Punkten gleichen Typs; bei einem Typwechsel
+      // beginnt ein neues Segment, es gibt keine Verbindung über die Segmentgrenze.
       ctx.lineWidth = 2;
       ctx.strokeStyle = "rgba(46,173,107,.75)";
       ctx.beginPath();
       points.forEach((p, idx) => {
         const x = mapX(p.x);
         const y = mapY(p.y);
-        if (idx === 0) ctx.moveTo(x, y);
+        if (idx === 0 || p.type !== points[idx - 1].type) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
       ctx.stroke();
@@ -244,7 +262,7 @@
       ctx.arc(lx, ly, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      lastPoint.textContent = `Letzter Punkt: x=${last.x}, y=${last.y}, type=${last.type}`;
+      lastPoint.textContent = `Letzter Punkt: x=${last.x}, y=${last.y}, Typ ${last.type}`;
     }
 
     async function loadArchiveIndex() {
@@ -302,7 +320,15 @@
     });
 
     reloadBtn.addEventListener("click", reloadAll);
-    window.addEventListener("resize", loadMap);
+
+    // Canvas-Größe folgt dem Container (auch im iframe von Home Assistant): bei jeder
+    // Größenänderung aus den zuletzt geladenen Daten neu zeichnen, ohne neu zu laden.
+    const redraw = () => { if (lastData) drawMap(lastData); };
+    if (window.ResizeObserver) {
+      new ResizeObserver(redraw).observe(document.querySelector("main"));
+    } else {
+      window.addEventListener("resize", redraw);
+    }
 
     reloadAll();
     timer = setInterval(loadMap, 3000);
