@@ -69,7 +69,7 @@ cards:
       service_data:
         taste: button.tesvor_x500_pro_edge_cleaning
 - type: iframe
-  url: /local/tesvor-map/map.html
+  url: /local/tesvor-map/map.html?v=2
   aspect_ratio: 100%
   title: Route
   grid_options:

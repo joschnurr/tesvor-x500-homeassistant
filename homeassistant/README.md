@@ -27,3 +27,7 @@ Akkustand deshalb über `battery_entity: sensor.tesvor_x500_pro_battery`.
 liegt auch `map.html` (aus `docker/tesvor-map/app/`). Home Assistant liefert den Ordner unter
 `/local/tesvor-map/` aus, die iframe-Karte zeigt `/local/tesvor-map/map.html`. Das funktioniert
 auch in der Companion-App, weil kein eigener Webserver nötig ist.
+
+Home Assistant liefert `/local/` mit einem Cache von 31 Tagen aus. Nach einer Änderung an
+`map.html` deshalb die iframe-URL mit einem Versionsparameter versehen
+(`/local/tesvor-map/map.html?v=2`), sonst zeigen Browser und App die alte Fassung.
