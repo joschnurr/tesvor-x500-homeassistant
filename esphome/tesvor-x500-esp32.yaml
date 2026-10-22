@@ -11,9 +11,17 @@
 # Anschluss (nur 4 Leitungen, vom ehemaligen J1-Kabel): Rot 3,3 V -> Pin 3V3, Schwarz -> GND,
 # Roboter-TX (gelb oder weiß) -> GPIO16, Roboter-RX -> GPIO17. Beim Flashen am PC das rote Kabel
 # abklemmen (keine zwei 3,3-V-Quellen parallel). Niemals 5 V auf die Roboterleitungen.
-esphome:
+# Mehrere Roboter: je Gerät eine Kopie dieser Datei mit eigenem name, friendly_name und
+# topic_prefix (z. B. tesvor-x500-2 / "Tesvor Keller" / tesvor/x500-2). Entitäts-IDs in Home
+# Assistant leiten sich aus dem friendly_name ab, der Karten-Writer erkennt das Gerät am Präfix.
+substitutions:
   name: tesvor-x500
   friendly_name: Tesvor X500 Pro
+  topic_prefix: tesvor/x500
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
 
 esp32:
   board: esp32dev
@@ -28,7 +36,7 @@ mqtt:
   id: mqtt_client
   broker: !secret mqtt_broker
   port: 1883
-  topic_prefix: tesvor/x500
+  topic_prefix: ${topic_prefix}
   discovery: false
 
 ota:
@@ -251,7 +259,7 @@ uart:
                 case 0x0B: mqtt_state = "zmode_cleaning"; break;
               }
 
-              id(mqtt_client).publish("tesvor/x500/state", mqtt_state);
+              id(mqtt_client).publish("${topic_prefix}/state", mqtt_state);
 
               if (
                 (state == 0x06) ||
@@ -365,7 +373,7 @@ uart:
 
                 if (batch_has_points) {
                   batch += "]}";
-                  id(mqtt_client).publish("tesvor/x500/map/points", batch);
+                  id(mqtt_client).publish("${topic_prefix}/map/points", batch);
                 }
 
                 // Do not flood Home Assistant with every UART frame.

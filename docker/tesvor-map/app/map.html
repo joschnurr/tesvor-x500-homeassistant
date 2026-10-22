@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Tesvor X500 Karte</title>
+  <title>Tesvor Route</title>
   <style>
     :root {
       --bg: #12161d;
@@ -58,6 +58,10 @@
       flex: 1;
       max-width: 520px;
     }
+
+    /* Geräteauswahl erscheint nur, wenn der Writer mehr als ein Gerät kennt */
+    #deviceSelect { display: none; max-width: 240px; }
+    body.multi #deviceSelect { display: inline-block; }
 
     /* Karte füllt den Platz zwischen Kopf- und Statuszeile; die Canvas-Höhe folgt dem Container
        (ResizeObserver), nicht einer festen Pixelzahl. */
@@ -121,9 +125,10 @@
 </head>
 <body>
   <header>
-    <h1>Tesvor X500 Karte</h1>
-    <select id="archiveSelect" title="Archiv auswählen">
-      <option value="current.json">Aktuelle Karte</option>
+    <h1>Tesvor Route</h1>
+    <select id="deviceSelect" title="Gerät auswählen"></select>
+    <select id="archiveSelect" title="Route auswählen">
+      <option value="current.json">Aktuelle Route</option>
     </select>
     <button id="reloadBtn" type="button">Neu laden</button>
   </header>
@@ -140,15 +145,42 @@
     const canvas = document.getElementById("map");
     const ctx = canvas.getContext("2d");
     const archiveSelect = document.getElementById("archiveSelect");
+    const deviceSelect = document.getElementById("deviceSelect");
     const reloadBtn = document.getElementById("reloadBtn");
     const badge = document.getElementById("badge");
     const lastPoint = document.getElementById("lastPoint");
 
-    let currentUrl = "current.json";
+    let currentUrl = "current.json";   // relativ zum Geräteordner
+    let device = new URLSearchParams(location.search).get("device") || "";
     let timer = null;
     let lastData = null;
 
-    // Lesbare Beschriftung für Archivkarten: "Karte Montag 22.10. 15:00 (748 Punkte)".
+    // Daten liegen je Gerät in <gerät>/… (devices.json des Writers). Ohne Geräteliste (alte
+    // Writer-Fassung) werden die Dateien direkt neben map.html erwartet.
+    const devPath = rel => (device ? `${device}/${rel}` : rel);
+
+    async function loadDevices() {
+      try {
+        const res = await fetch("devices.json?ts=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) return;
+        const list = (await res.json()).devices || [];
+        if (!list.length) return;
+        if (!list.some(d => d.id === device)) device = list[0].id;
+        deviceSelect.innerHTML = "";
+        for (const d of list) {
+          const opt = document.createElement("option");
+          opt.value = d.id;
+          opt.textContent = d.name && d.name !== d.id ? `${d.name} (${d.id})` : d.id;
+          deviceSelect.appendChild(opt);
+        }
+        deviceSelect.value = device;
+        document.body.classList.toggle("multi", list.length > 1);
+      } catch (e) {
+        console.warn("devices.json nicht lesbar", e);
+      }
+    }
+
+    // Lesbare Beschriftung für Archivrouten: "Route Montag 22.10. 15:00 (748 Punkte)".
     // Zeitpunkt = Start der Fahrt (Feld "started" im Index), sonst der Zeitstempel aus dem
     // Dateinamen tesvor_map_JJJJ-MM-TT_HH-MM-SS_*.json (= Ende der Fahrt).
     function archivLabel(f) {
@@ -162,7 +194,7 @@
       const datum = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.`;
       const zeit = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
       const punkte = Number.isFinite(f.point_count) ? ` (${f.point_count} Punkte)` : "";
-      return `Karte ${tag} ${datum} ${zeit}${punkte}`;
+      return `Route ${tag} ${datum} ${zeit}${punkte}`;
     }
 
     function normalizePoint(p) {
@@ -284,12 +316,12 @@
 
     async function loadArchiveIndex() {
       try {
-        const res = await fetch("archive_index.json?ts=" + Date.now(), { cache: "no-store" });
+        const res = await fetch(devPath("archive_index.json") + "?ts=" + Date.now(), { cache: "no-store" });
         if (!res.ok) return;
         const index = await res.json();
 
         const currentValue = archiveSelect.value || "current.json";
-        archiveSelect.innerHTML = '<option value="current.json">Aktuelle Karte</option>';
+        archiveSelect.innerHTML = '<option value="current.json">Aktuelle Route</option>';
 
         for (const f of index.files || []) {
           const opt = document.createElement("option");
@@ -308,7 +340,7 @@
 
     async function loadMap() {
       try {
-        const url = currentUrl + "?ts=" + Date.now();
+        const url = devPath(currentUrl) + "?ts=" + Date.now();
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         const data = await res.json();
@@ -320,9 +352,19 @@
     }
 
     async function reloadAll() {
+      await loadDevices();
       await loadArchiveIndex();
       await loadMap();
     }
+
+    deviceSelect.addEventListener("change", async () => {
+      device = deviceSelect.value;
+      currentUrl = "current.json";
+      clearInterval(timer);
+      timer = setInterval(loadMap, 3000);
+      await loadArchiveIndex();
+      await loadMap();
+    });
 
     archiveSelect.addEventListener("change", () => {
       currentUrl = archiveSelect.value;

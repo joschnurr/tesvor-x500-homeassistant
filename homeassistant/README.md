@@ -21,6 +21,14 @@ Die Dashboard-Sektion nutzt die HACS-Karte
 `vacuum.battery_level` gibt es seit Home Assistant 2026.8 nicht mehr; die Karte bekommt den
 Akkustand deshalb über `battery_entity: sensor.tesvor_x500_pro_battery`.
 
+## Mehrere Roboter
+
+`scripts/tesvor_starten.yaml` braucht keine Kopie: Es leitet das Gerät aus der übergebenen Taste ab
+(`button.<gerät>_smart_cleaning` → `sensor.<gerät>_state`, `button.<gerät>_stop`).
+`templates/tesvor.yaml` und `dashboard/saugroboter.yaml` je Roboter kopieren und die Entitäts-IDs
+(`tesvor_x500_pro_…`) sowie `unique_id`/`name` auf das zweite Gerät ändern. Die iframe-Karte bekommt
+`?device=<gerät>` (Kennung = letzter Teil des MQTT-Präfixes), damit jede Sektion ihre eigene Route zeigt.
+
 ## Karte
 
 `docker/tesvor-map` schreibt in den Ordner `www/tesvor-map` des HA-Konfigverzeichnisses, dort

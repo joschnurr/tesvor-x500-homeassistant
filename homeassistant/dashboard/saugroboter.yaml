@@ -64,7 +64,7 @@ cards:
     columns: 12
     rows: auto
 - type: iframe
-  url: /local/tesvor-map/map.html?v=3
+  url: /local/tesvor-map/map.html?v=4
   aspect_ratio: 100%
   title: Route
   grid_options:

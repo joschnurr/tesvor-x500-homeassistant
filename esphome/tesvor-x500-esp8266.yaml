@@ -10,9 +10,17 @@
 #   - Wenig RAM: Kartenpuffer 120 Punkte.
 # Erfahrung 10/2026: lief, aber der Empfang des Moduls im Gehäuse war unzuverlässig; die
 # ESP32-S3-Variante (tesvor-x500-esp32s3.yaml) ist die empfohlene Lösung.
-esphome:
+# Mehrere Roboter: je Gerät eine Kopie dieser Datei mit eigenem name, friendly_name und
+# topic_prefix (z. B. tesvor-x500-2 / "Tesvor Keller" / tesvor/x500-2). Entitäts-IDs in Home
+# Assistant leiten sich aus dem friendly_name ab, der Karten-Writer erkennt das Gerät am Präfix.
+substitutions:
   name: tesvor-x500
   friendly_name: Tesvor X500 Pro
+  topic_prefix: tesvor/x500
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
 
 esp8266:
   board: esp12e          # ESP-12S = gleicher Chip und Flash-Layout, 4 MB
@@ -26,7 +34,7 @@ mqtt:
   id: mqtt_client
   broker: !secret mqtt_broker
   port: 1883
-  topic_prefix: tesvor/x500
+  topic_prefix: ${topic_prefix}
   discovery: false       # Entitäten kommen über die ESPHome-API, MQTT nur für Karte/Rohstatus
 
 ota:
@@ -251,7 +259,7 @@ uart:
                 case 0x0B: mqtt_state = "zmode_cleaning"; break;
               }
 
-              id(mqtt_client).publish("tesvor/x500/state", mqtt_state);
+              id(mqtt_client).publish("${topic_prefix}/state", mqtt_state);
 
               if (
                 (state == 0x08) ||
@@ -367,7 +375,7 @@ uart:
 
                 if (batch_has_points) {
                   batch += "]}";
-                  id(mqtt_client).publish("tesvor/x500/map/points", batch);
+                  id(mqtt_client).publish("${topic_prefix}/map/points", batch);
                 }
 
                 // Do not flood Home Assistant with every UART frame.

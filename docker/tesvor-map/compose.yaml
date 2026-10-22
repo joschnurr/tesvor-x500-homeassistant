@@ -1,7 +1,8 @@
 # Karten-Writer für den Tesvor X500 (ESPHome-Firmware aus diesem Repository / hannes813).
-# Der ESP im Roboter schickt Pfadpunkte per MQTT (tesvor/x500/map/points) und den Status
-# (tesvor/x500/state). Dieser Container baut daraus current.json + archive/ im www-Ordner von
-# Home Assistant, damit die Karte unter /local/tesvor-map/map.html erreichbar ist (iframe-Karte).
+# Jeder Roboter schickt Pfadpunkte per MQTT (<präfix>/map/points) und den Status (<präfix>/state).
+# Dieser eine Container bedient beliebig viele Roboter und legt je Gerät einen Ordner mit
+# current.json + archive/ im www-Ordner von Home Assistant an; die Kartenseite bietet dann eine
+# Geräteauswahl (/local/tesvor-map/map.html, iframe-Karte).
 # Konfiguration über .env (Vorlage .env.example): Broker-Adresse und Pfad zum www-Ordner.
 services:
   tesvor-map:
@@ -16,6 +17,9 @@ services:
       TESVOR_MQTT_USER: ${MQTT_USER:-}
       TESVOR_MQTT_PASSWORD: ${MQTT_PASSWORD:-}
       TESVOR_MAP_DIR: /data
+      TESVOR_TOPIC_ROOT: ${TOPIC_ROOT:-tesvor}        # Firmware-Präfix ist <root>/<gerät>, z. B. tesvor/x500
+      TESVOR_DEFAULT_DEVICE: ${DEFAULT_DEVICE:-x500}  # Zielordner für Daten aus der Einzelgerät-Zeit (v1.0.x)
+      TESVOR_DEVICE_NAMES: ${DEVICE_NAMES:-}          # Anzeigenamen, z. B. x500=Erdgeschoss,x500-2=Keller
       TESVOR_ARCHIVE_KEEP: ${ARCHIVE_KEEP:-30}   # max. Archivkarten, ältere werden gelöscht (0 = unbegrenzt)
       TZ: ${TZ:-Europe/Berlin}
     volumes:

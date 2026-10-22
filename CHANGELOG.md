@@ -1,5 +1,19 @@
 # Änderungen
 
+## v1.1.0 – 2026-10-22
+
+Mehrgeräte-Fähigkeit und Beschriftung „Route".
+
+- Firmware: `substitutions` für `name`, `friendly_name` und `topic_prefix`; die MQTT-Themen im
+  Parser folgen dem Präfix. Je Roboter genügt eine Kopie mit drei geänderten Zeilen.
+- Karten-Writer: bedient beliebig viele Roboter (`<TOPIC_ROOT>/+/…`), je Gerät ein Ordner mit
+  `current.json`, `archive/` und Index, dazu `devices.json`; alte Einzelgerät-Daten werden beim
+  Start automatisch nach `<DEFAULT_DEVICE>/` verschoben. Neue Variablen `TOPIC_ROOT`,
+  `DEFAULT_DEVICE`, `DEVICE_NAMES`.
+- Kartenseite: Geräteauswahl (nur sichtbar bei mehreren Geräten, `?device=` wählt vor),
+  Beschriftung „Route Donnerstag 22.10. 19:59 (138 Punkte)" und „Aktuelle Route".
+- Start-Skript: geräteunabhängig, das Gerät wird aus der Taste abgeleitet.
+
 ## v1.0.2 – 2026-10-22
 
 - Kartenseite: Archivkarten heißen jetzt „Karte Montag 22.10. 15:00 (748 Punkte)" statt Dateiname.

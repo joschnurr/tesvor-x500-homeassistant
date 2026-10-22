@@ -57,6 +57,21 @@ Roboter-Hauptplatine ──UART 115200──► ESP (ESPHome) ──WLAN──�
 Betriebserfahrungen, bekannte Fallen und das Protokoll: [docs/betrieb.md](docs/betrieb.md),
 [docs/protokoll.md](docs/protokoll.md).
 
+## Mehrere Roboter
+
+Alles ist auf mehrere Geräte ausgelegt, ohne dass sich etwas in die Quere kommt:
+
+- **Firmware:** Je Roboter eine Kopie der YAML mit eigenen `substitutions` (`name`,
+  `friendly_name`, `topic_prefix`, z. B. `tesvor-x500-2`, „Tesvor Keller", `tesvor/x500-2`).
+  Daraus folgen eindeutige Hostnamen, MQTT-Themen und Entitäts-IDs in Home Assistant.
+- **Karten-Writer:** Ein Container für alle. Er abonniert `<TOPIC_ROOT>/+/…`, erkennt das Gerät am
+  Präfix und schreibt je Gerät einen Ordner (`x500/`, `x500-2/`, …) plus `devices.json`.
+- **Kartenseite:** Zeigt bei mehr als einem Gerät eine Geräteauswahl; `?device=x500-2` an der
+  iframe-URL wählt vor. Anzeigenamen kommen aus `DEVICE_NAMES` in der `.env`.
+- **Home Assistant:** Das Start-Skript leitet das Gerät aus der übergebenen Taste ab und gilt für
+  alle Roboter. Die Template-`vacuum` und die Dashboard-Sektion werden je Gerät kopiert und auf
+  die jeweiligen Entitäts-IDs angepasst (siehe `homeassistant/README.md`).
+
 ## Sicherheit
 
 - Firmware-Binärdateien gehören nicht ins Repository: Sie enthalten WLAN-Zugangsdaten und den
