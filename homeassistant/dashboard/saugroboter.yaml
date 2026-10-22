@@ -1,0 +1,77 @@
+# Dashboard-Sektion „Saugroboter" (Sections-Dashboard, YAML-Editor der Sektion).
+# Braucht die HACS-Karte denysdovhan/vacuum-card; die iframe-Karte zeigt die Route aus docker/tesvor-map.
+type: grid
+cards:
+- type: heading
+  heading: Saugroboter
+  icon: mdi:robot-vacuum
+- type: custom:vacuum-card
+  entity: vacuum.tesvor_x500_pro
+  battery_entity: sensor.tesvor_x500_pro_battery
+  show_name: true
+  show_status: true
+  show_toolbar: true
+  compact_view: false
+  stats:
+    default:
+    - entity_id: sensor.tesvor_x500_pro_fehler_klartext
+      subtitle: Fehler
+    - entity_id: select.tesvor_x500_pro_wischintensitat
+      subtitle: Wischstufe
+    cleaning:
+    - entity_id: sensor.tesvor_x500_pro_reinigungsdauer_gerundet
+      unit: min
+      subtitle: Reinigungsdauer
+    - entity_id: sensor.tesvor_x500_pro_fehler_klartext
+      subtitle: Fehler
+  shortcuts:
+  - name: Kante
+    icon: mdi:border-outside
+    service: script.tesvor_starten
+    service_data:
+      taste: button.tesvor_x500_pro_edge_cleaning
+  - name: Zickzack/Wischen
+    icon: mdi:water
+    service: script.tesvor_starten
+    service_data:
+      taste: button.tesvor_x500_pro_zickzack_wischen
+  - name: Vorwärts
+    icon: mdi:arrow-up-bold
+    service: button.press
+    target:
+      entity_id: button.tesvor_x500_pro_move_front
+  - name: Links
+    icon: mdi:arrow-left-bold
+    service: button.press
+    target:
+      entity_id: button.tesvor_x500_pro_move_left
+  - name: Rechts
+    icon: mdi:arrow-right-bold
+    service: button.press
+    target:
+      entity_id: button.tesvor_x500_pro_move_right
+  - name: Rückwärts
+    icon: mdi:arrow-down-bold
+    service: button.press
+    target:
+      entity_id: button.tesvor_x500_pro_move_back
+  - name: Route zurücksetzen
+    icon: mdi:map-marker-remove
+    service: button.press
+    target:
+      entity_id: button.tesvor_x500_pro_map_reset
+  grid_options:
+    columns: 12
+    rows: auto
+  actions:
+    locate:
+      service: script.tesvor_starten
+      service_data:
+        taste: button.tesvor_x500_pro_edge_cleaning
+- type: iframe
+  url: /local/tesvor-map/map.html
+  aspect_ratio: 100%
+  title: Route
+  grid_options:
+    columns: 12
+    rows: 8

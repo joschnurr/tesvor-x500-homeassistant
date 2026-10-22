@@ -1,0 +1,92 @@
+# Saugroboter Tesvor X500 Pro (ESPHome-Firmware aus esphome/) als echte vacuum-Entität,
+# damit Saugroboter-Karten (vacuum-card, xiaomi-vacuum-map-card) und Sprachassistenten ihn bedienen.
+# ESPHome liefert nur Tasten/Sensoren; der Zustand kommt aus sensor.tesvor_x500_pro_vacuum_state
+# (docked/cleaning/returning/idle/error — schon auf die HA-Vacuum-Zustände abgebildet).
+# Saugstärke = select „Saugstärke Test experimentell“ (Rückmeldung laut Projekt unzuverlässig).
+# Akku: vacuum.battery_level gibt es seit 2026.8 nicht mehr → Karten auf sensor.tesvor_x500_pro_battery.
+- vacuum:
+    - name: Tesvor X500 Pro
+      unique_id: tesvor_x500_pro_vacuum
+      state: >-
+        {% set s = states('sensor.tesvor_x500_pro_vacuum_state') %}
+        {{ s if s in ['cleaning', 'docked', 'idle', 'returning', 'error'] else 'idle' }}
+      availability: "{{ has_value('sensor.tesvor_x500_pro_vacuum_state') }}"
+      # status = Klartext für die vacuum-card (unbekannte Werte zeigt sie unübersetzt an)
+      attributes:
+        status: "{{ states('sensor.tesvor_x500_pro_zustand_klartext') }}"
+      # Saugstufen deutsch. Firmware bis 21.10.2026: Optionen Quiet/Normal/Strong, ab dem
+      # OTA-Update vom 21.10. deutsch (Leise/Normal/Stark) — beides wird verstanden.
+      fan_speed: >-
+        {% set s = states('select.tesvor_x500_pro_saugstarke_test_experimentell') %}
+        {{ {'Quiet': 'Leise', 'Strong': 'Stark'}.get(s, s) if s in ['Quiet', 'Strong', 'Leise', 'Stark', 'Normal'] else 'Normal' }}
+      fan_speeds:
+        - Leise
+        - Normal
+        - Stark
+      start:  # über das Skript: weckt ihn an der Station erst auf (sonst ignoriert er den Start)
+        - action: script.tesvor_starten
+          data:
+            taste: button.tesvor_x500_pro_smart_cleaning
+      pause:
+        - action: button.press
+          target:
+            entity_id: button.tesvor_x500_pro_stop
+      stop:
+        - action: button.press
+          target:
+            entity_id: button.tesvor_x500_pro_stop
+      return_to_base:
+        - action: button.press
+          target:
+            entity_id: button.tesvor_x500_pro_go_charge
+      clean_spot:  # über das Skript: weckt ihn an der Station erst auf (sonst ignoriert er den Start)
+        - action: script.tesvor_starten
+          data:
+            taste: button.tesvor_x500_pro_spot_cleaning
+      set_fan_speed:
+        - action: select.select_option
+          target:
+            entity_id: select.tesvor_x500_pro_saugstarke_test_experimentell
+          data:
+            option: >-
+              {% set deutsch = 'Stark' in state_attr('select.tesvor_x500_pro_saugstarke_test_experimentell', 'options') | default([], true) %}
+              {{ fan_speed if deutsch else {'Leise': 'Quiet', 'Stark': 'Strong'}.get(fan_speed, fan_speed) }}
+
+# Deutsche Klartexte zu den englischen Rohwerten der ESPHome-Firmware (Strings stehen im
+# Parser-Lambda von esphome/tesvor-x500-*.yaml; dort ändern hieße neu kompilieren).
+- sensor:
+    - name: Tesvor X500 Pro Zustand Klartext
+      unique_id: tesvor_x500_pro_zustand_klartext
+      icon: mdi:robot-vacuum
+      availability: "{{ has_value('sensor.tesvor_x500_pro_state') }}"
+      state: >-
+        {% set t = {
+          'cleaning': 'Reinigt (Smart)', 'spot cleaning': 'Spot-Reinigung',
+          'edge cleaning': 'Kantenreinigung', 'zmode cleaning': 'Zickzack/Wischen',
+          'returning': 'Fährt zur Station', 'charging': 'Lädt', 'docked': 'In der Station',
+          'idle': 'Bereit', 'hibernated': 'Ruhezustand', 'setting': 'Handsteuerung',
+          'error': 'Störung' } %}
+        {% set s = states('sensor.tesvor_x500_pro_state') %}
+        {{ t.get(s, s) }}
+
+    - name: Tesvor X500 Pro Fehler Klartext
+      unique_id: tesvor_x500_pro_fehler_klartext
+      icon: mdi:alert-circle-outline
+      availability: "{{ has_value('sensor.tesvor_x500_pro_error_state') }}"
+      state: >-
+        {% set t = {
+          'no error': 'Kein Fehler', 'rolling brush blocked': 'Hauptbürste blockiert',
+          'wheels blocked': 'Räder blockiert', 'side brush blocked': 'Seitenbürste blockiert',
+          'front guard jammed': 'Stoßfänger klemmt', 'no water box': 'Wassertank fehlt',
+          'no water mop': 'Wischtuch fehlt', 'water box empty': 'Wassertank leer',
+          'water pump error': 'Wasserpumpe defekt', 'vibration pump error': 'Vibrationspumpe defekt' } %}
+        {% set s = states('sensor.tesvor_x500_pro_error_state') %}
+        {{ t.get(s, s | replace('error', 'Fehlercode')) }}
+
+    # Ganze Minuten für die vacuum-card (sie zeigt den Rohzustand, die Firmware liefert Sekunden/60.0)
+    - name: Tesvor X500 Pro Reinigungsdauer gerundet
+      unique_id: tesvor_x500_pro_reinigungsdauer_gerundet
+      icon: mdi:timer-outline
+      unit_of_measurement: min
+      availability: "{{ has_value('sensor.tesvor_x500_pro_reinigungsdauer') }}"
+      state: "{{ states('sensor.tesvor_x500_pro_reinigungsdauer') | float(0) | round(0) | int }}"

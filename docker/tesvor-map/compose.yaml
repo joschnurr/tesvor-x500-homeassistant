@@ -1,0 +1,23 @@
+# Karten-Writer für den Tesvor X500 (ESPHome-Firmware aus diesem Repository / hannes813).
+# Der ESP im Roboter schickt Pfadpunkte per MQTT (tesvor/x500/map/points) und den Status
+# (tesvor/x500/state). Dieser Container baut daraus current.json + archive/ im www-Ordner von
+# Home Assistant, damit die Karte unter /local/tesvor-map/map.html erreichbar ist (iframe-Karte).
+# Konfiguration über .env (Vorlage .env.example): Broker-Adresse und Pfad zum www-Ordner.
+services:
+  tesvor-map:
+    image: python:3.12-alpine
+    container_name: tesvor-map
+    restart: unless-stopped
+    command: >
+      sh -c "pip install --quiet --no-cache-dir 'paho-mqtt<2' && exec python /app/tesvor_map_writer.py"
+    environment:
+      TESVOR_MQTT_HOST: ${MQTT_HOST}
+      TESVOR_MQTT_PORT: ${MQTT_PORT:-1883}
+      TESVOR_MQTT_USER: ${MQTT_USER:-}
+      TESVOR_MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+      TESVOR_MAP_DIR: /data
+      TESVOR_ARCHIVE_KEEP: ${ARCHIVE_KEEP:-30}   # max. Archivkarten, ältere werden gelöscht (0 = unbegrenzt)
+      TZ: ${TZ:-Europe/Berlin}
+    volumes:
+      - ./app:/app:ro
+      - ${HA_WWW_TESVOR}:/data

@@ -1,0 +1,10 @@
+# Firmware-Binärdateien enthalten WLAN-Zugangsdaten und den API-Schlüssel
+*.bin
+*.elf
+firmware/
+# Geheimnisse
+secrets.yaml
+.env
+# Python
+__pycache__/
+*.pyc

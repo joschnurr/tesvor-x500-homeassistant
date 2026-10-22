@@ -1,0 +1,36 @@
+# Skript für Home Assistant (scripts.yaml): Reinigung starten.
+# Auf der Ladestation (Zustand charging/docked/hibernated) ignoriert der Roboter Startbefehle ohne
+# Quittung; ein Stopp vorab weckt ihn. Deshalb: Stopp, 3 s warten, dann die gewünschte Starttaste.
+# Wird von vacuum.tesvor_x500_pro (templates/tesvor.yaml) und der Dashboard-Karte genutzt.
+tesvor_starten:
+  alias: Tesvor – Reinigung starten
+  description: Weckt den Saugroboter bei Bedarf mit Stopp und drückt dann die gewünschte Starttaste.
+  icon: mdi:robot-vacuum
+  mode: restart
+  fields:
+    taste:
+      name: Starttaste
+      description: ESPHome-Taste des Reinigungsmodus
+      required: true
+      default: button.tesvor_x500_pro_smart_cleaning
+      selector:
+        entity:
+          domain: button
+          integration: esphome
+  sequence:
+  - if:
+    - condition: state
+      entity_id: sensor.tesvor_x500_pro_state
+      state:
+      - charging
+      - docked
+      - hibernated
+    then:
+    - action: button.press
+      target:
+        entity_id: button.tesvor_x500_pro_stop
+    - delay:
+        seconds: 3
+  - action: button.press
+    target:
+      entity_id: '{{ taste }}'
