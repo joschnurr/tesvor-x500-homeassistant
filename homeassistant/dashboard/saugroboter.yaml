@@ -25,8 +25,8 @@ cards:
     - entity_id: sensor.tesvor_x500_pro_fehler_klartext
       subtitle: Fehler
   shortcuts:
-  - name: Kante
-    icon: mdi:border-outside
+  - name: Kanten
+    icon: mdi:wall
     service: script.tesvor_starten
     service_data:
       taste: button.tesvor_x500_pro_edge_cleaning
@@ -63,11 +63,6 @@ cards:
   grid_options:
     columns: 12
     rows: auto
-  actions:
-    locate:
-      service: script.tesvor_starten
-      service_data:
-        taste: button.tesvor_x500_pro_edge_cleaning
 - type: iframe
   url: /local/tesvor-map/map.html?v=2
   aspect_ratio: 100%
