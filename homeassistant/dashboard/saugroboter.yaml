@@ -26,7 +26,7 @@ cards:
       subtitle: Fehler
   shortcuts:
   - name: Kanten
-    icon: mdi:wall
+    icon: mdi:border-outside
     service: script.tesvor_starten
     service_data:
       taste: button.tesvor_x500_pro_edge_cleaning
@@ -64,7 +64,7 @@ cards:
     columns: 12
     rows: auto
 - type: iframe
-  url: /local/tesvor-map/map.html?v=2
+  url: /local/tesvor-map/map.html?v=3
   aspect_ratio: 100%
   title: Route
   grid_options:

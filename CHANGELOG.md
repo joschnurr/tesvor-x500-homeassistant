@@ -1,5 +1,11 @@
 # Änderungen
 
+## v1.0.2 – 2026-10-22
+
+- Kartenseite: Archivkarten heißen jetzt „Karte Montag 22.10. 15:00 (748 Punkte)" statt Dateiname.
+- Writer: Index enthält Startzeit und Punktzahl je Archiv (Grundlage für die Beschriftung).
+- Dashboard: Kantenreinigung mit Rahmen-Symbol (mdi:border-outside), „Orten"-Umleitung entfernt.
+
 ## v1.0.1 – 2026-10-22
 
 Kartenseite (`docker/tesvor-map/app/map.html`):

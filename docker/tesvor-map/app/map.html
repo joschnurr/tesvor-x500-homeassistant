@@ -148,6 +148,23 @@
     let timer = null;
     let lastData = null;
 
+    // Lesbare Beschriftung für Archivkarten: "Karte Montag 22.10. 15:00 (748 Punkte)".
+    // Zeitpunkt = Start der Fahrt (Feld "started" im Index), sonst der Zeitstempel aus dem
+    // Dateinamen tesvor_map_JJJJ-MM-TT_HH-MM-SS_*.json (= Ende der Fahrt).
+    function archivLabel(f) {
+      let d = f.started ? new Date(f.started) : null;
+      if (!d || isNaN(d)) {
+        const m = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})/.exec(f.name || "");
+        if (m) d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+      }
+      if (!d || isNaN(d)) return f.name;
+      const tag = d.toLocaleDateString("de-DE", { weekday: "long" });
+      const datum = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.`;
+      const zeit = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      const punkte = Number.isFinite(f.point_count) ? ` (${f.point_count} Punkte)` : "";
+      return `Karte ${tag} ${datum} ${zeit}${punkte}`;
+    }
+
     function normalizePoint(p) {
       if (Array.isArray(p)) {
         return {
@@ -277,7 +294,7 @@
         for (const f of index.files || []) {
           const opt = document.createElement("option");
           opt.value = f.path;
-          opt.textContent = f.name;
+          opt.textContent = archivLabel(f);
           archiveSelect.appendChild(opt);
         }
 

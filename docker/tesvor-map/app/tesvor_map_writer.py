@@ -31,7 +31,7 @@ POINT_TOPIC = os.getenv("TESVOR_POINT_TOPIC", "tesvor/x500/map/points")
 STATE_TOPIC = os.getenv("TESVOR_STATE_TOPIC", "tesvor/x500/state")
 
 MIN_POINTS_TO_ARCHIVE = int(os.getenv("TESVOR_MIN_POINTS_TO_ARCHIVE", "5"))
-# Ergänzung 22.10.2026: höchstens so viele Archivkarten behalten, ältere löschen (0 = unbegrenzt)
+# Gbox-Ergänzung 22.10.2026: höchstens so viele Archivkarten behalten, ältere löschen (0 = unbegrenzt)
 ARCHIVE_KEEP = int(os.getenv("TESVOR_ARCHIVE_KEEP", "30"))
 
 BASE_DIR.mkdir(parents=True, exist_ok=True)
@@ -73,12 +73,21 @@ def archive_index_payload() -> dict:
     for f in sorted(ARCHIVE_DIR.glob("*.json"), reverse=True):
         try:
             stat = f.stat()
-            files.append({
+            eintrag = {
                 "name": f.name,
                 "path": f"archive/{f.name}",
                 "size": stat.st_size,
                 "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(timespec="seconds"),
-            })
+            }
+            # Ergänzung 22.10.2026: Startzeit und Punktzahl aus der Datei, damit die Kartenseite
+            # "Karte Montag 22.10. 15:00 (748 Punkte)" beschriften kann.
+            try:
+                inhalt = json.loads(f.read_text(encoding="utf-8"))
+                eintrag["started"] = inhalt.get("started")
+                eintrag["point_count"] = inhalt.get("point_count", len(inhalt.get("points", [])))
+            except (OSError, ValueError):
+                pass
+            files.append(eintrag)
         except OSError:
             pass
 
