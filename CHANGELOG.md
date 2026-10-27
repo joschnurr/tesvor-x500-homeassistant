@@ -5,8 +5,8 @@
 - Richtungstasten: Richtung senden, einstellbare Zeit warten („Richtungsschritt", 0,3–5 s, Standard 1,5 s,
   neue Number-Entität), dann Neutral. Vorher kamen Richtung und Neutral in einem Paket, der Roboter
   ruckte nur kurz an.
-- Protokoll: Saugstärke-Befehle werden im Stand und in Fahrt quittiert, der Statusrahmen enthält aber
-  kein Byte für die Stufe — Rückmeldung bleibt unmöglich (Test 27.10.2026, docs/protokoll.md).
+- Saugstärke: Befehle werden quittiert, aber nicht umgesetzt (Hörtest 27.10.2026 ohne Unterschied, kein
+  Statusbyte). Aus der vacuum-Vorlage entfernt; die ESPHome-Auswahl bleibt nur für Versuche.
 
 ## v1.1.0 – 2026-10-22
 

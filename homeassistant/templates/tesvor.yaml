@@ -2,7 +2,7 @@
 # damit Saugroboter-Karten (vacuum-card, xiaomi-vacuum-map-card) und Sprachassistenten ihn bedienen.
 # ESPHome liefert nur Tasten/Sensoren; der Zustand kommt aus sensor.tesvor_x500_pro_vacuum_state
 # (docked/cleaning/returning/idle/error — schon auf die HA-Vacuum-Zustände abgebildet).
-# Saugstärke = select „Saugstärke Test experimentell“ (Rückmeldung laut Projekt unzuverlässig).
+# Saugstärke: nicht angeboten — Befehle werden quittiert, aber nicht umgesetzt (Hörtest 27.10.2026).
 # Akku: vacuum.battery_level gibt es seit 2026.8 nicht mehr → Karten auf sensor.tesvor_x500_pro_battery.
 - vacuum:
     - name: Tesvor X500 Pro
@@ -14,15 +14,9 @@
       # status = Klartext für die vacuum-card (unbekannte Werte zeigt sie unübersetzt an)
       attributes:
         status: "{{ states('sensor.tesvor_x500_pro_zustand_klartext') }}"
-      # Saugstufen deutsch. Firmware bis 21.10.2026: Optionen Quiet/Normal/Strong, ab dem
-      # OTA-Update vom 21.10. deutsch (Leise/Normal/Stark) — beides wird verstanden.
-      fan_speed: >-
-        {% set s = states('select.tesvor_x500_pro_saugstarke_test_experimentell') %}
-        {{ {'Quiet': 'Leise', 'Strong': 'Stark'}.get(s, s) if s in ['Quiet', 'Strong', 'Leise', 'Stark', 'Normal'] else 'Normal' }}
-      fan_speeds:
-        - Leise
-        - Normal
-        - Stark
+      # Keine fan_speed-Unterstützung: Hörtest 27.10.2026 — Leise/Normal/Stark werden vom Roboter
+      # quittiert, der Lüfter ändert sich hörbar nicht, der Statusrahmen meldet nichts zurück.
+      # Die ESPHome-Auswahl "Saugstärke Test experimentell" bleibt als ausgeblendete Entität für Versuche.
       start:  # über das Skript: weckt ihn an der Station erst auf (sonst ignoriert er den Start)
         - action: script.tesvor_starten
           data:
@@ -43,14 +37,6 @@
         - action: script.tesvor_starten
           data:
             taste: button.tesvor_x500_pro_spot_cleaning
-      set_fan_speed:
-        - action: select.select_option
-          target:
-            entity_id: select.tesvor_x500_pro_saugstarke_test_experimentell
-          data:
-            option: >-
-              {% set deutsch = 'Stark' in state_attr('select.tesvor_x500_pro_saugstarke_test_experimentell', 'options') | default([], true) %}
-              {{ fan_speed if deutsch else {'Leise': 'Quiet', 'Stark': 'Strong'}.get(fan_speed, fan_speed) }}
 
 # Deutsche Klartexte zu den englischen Rohwerten der ESPHome-Firmware (Strings stehen im
 # Parser-Lambda von esphome/tesvor-x500-*.yaml; dort ändern hieße neu kompilieren).

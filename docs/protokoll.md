@@ -161,6 +161,7 @@ zugeordnet (Vermutung: Sprache an/aus, DND, Teppich-Boost, Suchen). Nur auf der 
 Alle Fan-Befehle (`AA 03 02 25 0x`) werden sowohl auf der Station als auch während einer laufenden
 Smart-Reinigung innerhalb von ~130 ms mit `AA 01 02 02` quittiert. 26 Statusrahmen aus den Phasen
 Station/Leise/Normal/Stark/Reinigung/Rückfahrt sind bis auf Zustands-, Fehler- und Akkubyte
-byteidentisch: **die Stufe wird nicht zurückgemeldet.** Ob der Motor sie umsetzt, ist nur hörbar
-prüfbar. Richtungsbefehle: Der Roboter fährt, bis Neutral kommt; deshalb seit v1.1.1 die einstellbare
+byteidentisch: **die Stufe wird nicht zurückgemeldet.** Hörtest am selben Tag (je 20 s Leise/Normal/Stark während der Fahrt): **kein hörbarer Unterschied** —
+die Hauptplatine nimmt den Befehl an, setzt ihn aber nicht um. Deshalb bietet die Home-Assistant-
+vacuum-Entität keine Saugstufen an. Richtungsbefehle: Der Roboter fährt, bis Neutral kommt; deshalb seit v1.1.1 die einstellbare
 Wartezeit zwischen Richtung und Neutral.

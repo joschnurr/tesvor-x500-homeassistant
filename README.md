@@ -22,7 +22,8 @@ Docker-Container für die Karte, die Home-Assistant-Vorlagen und die Erkenntniss
 | Zustand (reinigt, lädt, in der Station, Störung …), Fehlertext, Akkustand | bestätigt |
 | Fahrroute als Karte im Dashboard, Archiv je Fahrt | bestätigt |
 | `vacuum.tesvor_x500_pro` in Home Assistant (Start, Pause, Stopp, zurück, Spot, Saugstufe) | bestätigt |
-| Saugstärke, „Mop Cleaning" | experimentell, Rückmeldung unzuverlässig (wie upstream) |
+| Saugstärke | **wirkungslos**: Befehle werden quittiert, aber der Lüfter ändert sich nicht (Hörtest 27.10.2026); Entität nur für Versuche, nicht in der vacuum-Entität |
+| „Mop Cleaning" | experimentell (wie upstream) |
 
 Die Karte ist eine gefahrene Route aus Gyro-Punkten, keine Raumkarte. Mehr liefert die
 Roboterplatine nicht.
