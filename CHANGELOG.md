@@ -1,5 +1,13 @@
 # Änderungen
 
+## v1.1.1 – 2026-10-27
+
+- Richtungstasten: Richtung senden, einstellbare Zeit warten („Richtungsschritt", 0,3–5 s, Standard 1,5 s,
+  neue Number-Entität), dann Neutral. Vorher kamen Richtung und Neutral in einem Paket, der Roboter
+  ruckte nur kurz an.
+- Protokoll: Saugstärke-Befehle werden im Stand und in Fahrt quittiert, der Statusrahmen enthält aber
+  kein Byte für die Stufe — Rückmeldung bleibt unmöglich (Test 27.10.2026, docs/protokoll.md).
+
 ## v1.1.0 – 2026-10-22
 
 Mehrgeräte-Fähigkeit und Beschriftung „Route".

@@ -501,6 +501,23 @@ select:
           then:
             - uart.write: [0xAA, 0x03, 0x02, 0x25, 0x04, 0x2B]
 
+# Richtungstasten: Richtung senden, "Richtungsschritt" Sekunden warten, dann Neutral (AA 03 02 21 04 27).
+# Upstream schickte beides in einem Rutsch, der Roboter ruckte nur kurz an. Dauer in HA einstellbar.
+number:
+  - platform: template
+    name: "Richtungsschritt"
+    id: richtungsschritt
+    optimistic: true
+    restore_value: true
+    initial_value: 1.5
+    min_value: 0.3
+    max_value: 5
+    step: 0.1
+    unit_of_measurement: s
+    icon: mdi:timer-outline
+    entity_category: config
+    mode: slider
+
 button:
   - platform: template
     name: "Smart Cleaning"
@@ -536,25 +553,33 @@ button:
     name: "Move Front"
     on_press:
       then:
-        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x00, 0x23, 0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x00, 0x23]
+        - delay: !lambda 'return (uint32_t) (id(richtungsschritt).state * 1000);'
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
 
   - platform: template
     name: "Move Back"
     on_press:
       then:
-        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x03, 0x26, 0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x03, 0x26]
+        - delay: !lambda 'return (uint32_t) (id(richtungsschritt).state * 1000);'
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
 
   - platform: template
     name: "Move Left"
     on_press:
       then:
-        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x01, 0x24, 0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x01, 0x24]
+        - delay: !lambda 'return (uint32_t) (id(richtungsschritt).state * 1000);'
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
 
   - platform: template
     name: "Move Right"
     on_press:
       then:
-        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x02, 0x25, 0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x02, 0x25]
+        - delay: !lambda 'return (uint32_t) (id(richtungsschritt).state * 1000);'
+        - uart.write: [0xAA, 0x03, 0x02, 0x21, 0x04, 0x27]
 
   - platform: template
     name: "Zickzack Wischen"
